@@ -18,3 +18,19 @@ ifstream SelecaoDeMapa()
     mapa.open(nomeDoArquivo);
     return mapa;
 }
+
+inline vector<string> LerMapa()
+{
+    vector<string> mapa;
+    ifstream arquivoDoMapa = SelecaoDeMapa();
+    arquivoDoMapa.ignore(numeric_limits<streamsize>::max(), '\n');
+    arquivoDoMapa.ignore(numeric_limits<streamsize>::max(), '\n');
+    
+    while(arquivoDoMapa.getline())
+    {
+        string linha;
+        getline(arquivoDoMapa, linha);
+        mapa.push_back(linha);
+    }
+    return mapa;
+}
