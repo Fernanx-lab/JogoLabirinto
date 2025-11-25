@@ -26,7 +26,7 @@ inline vector<string> LerMapa()
     arquivoDoMapa.ignore(numeric_limits<streamsize>::max(), '\n');
     arquivoDoMapa.ignore(numeric_limits<streamsize>::max(), '\n');
     
-    while(arquivoDoMapa.getline())
+    while(!arquivoDoMapa.eof())
     {
         string linha;
         getline(arquivoDoMapa, linha);
