@@ -11,10 +11,15 @@ typedef struct {
 typedef struct {
     vector<string> mapaDesenho;
     MapaItens itens;
+    int altura;
+    int largura;
 }Mapa;
+
+Mapa mapaInvisivel;
 
 ifstream SelecaoDeMapa();
 Mapa ObtemMapa();
+void GerarItensMapa(Mapa* mapa);
 
 
 
@@ -41,7 +46,7 @@ Mapa ObtemMapa()
 {
     Mapa mapa;
     ifstream arquivoDoMapa = SelecaoDeMapa();
-    arquivoDoMapa.ignore(numeric_limits<streamsize>::max(), '\n');
+    arquivoDoMapa >> mapa.largura >> mapa.altura;
     arquivoDoMapa.ignore(numeric_limits<streamsize>::max(), '\n');
     mapa.itens.baus = 0;
     
@@ -50,12 +55,18 @@ Mapa ObtemMapa()
         string linha;
         getline(arquivoDoMapa, linha);
         mapa.itens.baus += count(linha.begin(), linha.end(), 'B');
+        mapaInvisivel.itens.baus += mapa.itens.baus;
         mapa.mapaDesenho.push_back(linha);
+        mapaInvisivel.mapaDesenho.push_back(linha);
     }
+    GerarItensMapa(&mapaInvisivel);
     return mapa;
 }
 
-void GerarItensMapa(Mapa& mapa)
+void GerarItensMapa(Mapa* mapa)
 {
-    
+    int totalDeBaus = mapa->itens.baus;
+    mapa->itens.curas = totalDeBaus / 3;
+    mapa->itens.bombas = totalDeBaus / 4;
+    mapa->itens.chaves = max(1, totalDeBaus / 5);
 }
