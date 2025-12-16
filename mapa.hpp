@@ -49,16 +49,17 @@ Mapa ObtemMapa()
     arquivoDoMapa >> mapa.largura >> mapa.altura;
     arquivoDoMapa.ignore(numeric_limits<streamsize>::max(), '\n');
     mapa.itens.baus = 0;
-    
-    while(!arquivoDoMapa.eof())
-    {
+
+    while (!arquivoDoMapa.eof()) {
         string linha;
         getline(arquivoDoMapa, linha);
         mapa.itens.baus += count(linha.begin(), linha.end(), 'B');
-        mapaInvisivel.itens.baus += mapa.itens.baus;
         mapa.mapaDesenho.push_back(linha);
-        mapaInvisivel.mapaDesenho.push_back(linha);
     }
+
+    // Copia para o mapa invisível e gera itens com base no desenho real
+    mapaInvisivel = mapa;
+    GerarItensMapa(&mapa);
     GerarItensMapa(&mapaInvisivel);
     return mapa;
 }
@@ -66,7 +67,15 @@ Mapa ObtemMapa()
 void GerarItensMapa(Mapa* mapa)
 {
     int totalDeBaus = mapa->itens.baus;
+    // Conta portas '$' no mapa — precisamos garantir chaves suficientes
+    int totalDePortas = 0;
+    for (const auto &linha : mapa->mapaDesenho) {
+        totalDePortas += (int)count(linha.begin(), linha.end(), '$');
+    }
+
     mapa->itens.curas = totalDeBaus / 3;
     mapa->itens.bombas = totalDeBaus / 4;
-    mapa->itens.chaves = max(1, totalDeBaus / 5);
+    int chavesPorBau = max(1, totalDeBaus / 5);
+    // Garante ao menos uma chave por porta, ou chaves calculadas por baús, o que for maior
+    mapa->itens.chaves = max(chavesPorBau, totalDePortas);
 }
