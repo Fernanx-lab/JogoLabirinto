@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <cstdlib>
 #include <ctime>
+#include <algorithm>
 
 #include "personagem.hpp"
 #include "jogo.hpp"
@@ -113,11 +114,31 @@ int main() {
 
     while (true) {
         imprimir_mapa_com_personagem(mapa, jogador);
-        cout << "Digite destino como 'linha coluna' (ou 'r' aleatorio, 'q' sair): ";
+        cout << "Digite destino como 'linha coluna' (ou 'r' aleatorio, 'h' curar, 'q' sair): ";
         string linha;
         if (!std::getline(cin, linha)) break;
         if (linha.empty()) continue;
         if (linha == "q") break;
+        else if (linha == "h") {
+            if (jogador.qtd_pocoes == 0) {
+                cout << "Nenhuma pocao disponivel." << endl;
+            } else {
+                cout << "Pocoes disponiveis:" << endl;
+                for (int i = 0; i < jogador.qtd_pocoes; ++i) {
+                    cout << i << ": Cura " << jogador.pocoes[i].cura << endl;
+                }
+                cout << "Digite o numero da pocao para usar: ";
+                string slot_str;
+                if (!std::getline(cin, slot_str)) break;
+                int slot = -1;
+                std::istringstream iss(slot_str);
+                if (iss >> slot && personagem_usar_pocao(&jogador, slot)) {
+                    cout << "Pocao usada! Vida atual: " << jogador.vida_atual << endl;
+                } else {
+                    cout << "Slot invalido." << endl;
+                }
+            }
+        }
         int destL = -1, destC = -1;
         if (linha == "r") {
             vector<pair<int,int>> livres;
@@ -126,16 +147,32 @@ int main() {
                     if (mapa.mapaDesenho[i][j] != '#') livres.push_back({i,j});
                 }
             }
-            if (livres.empty()) { cout << "Sem células livres." << endl; continue; }
+            if (livres.empty()) { cout << "Sem celulas livres." << endl; continue; }
                 size_t nlivres = livres.size();
                 auto sel = livres[rand() % nlivres];
             destL = sel.first; destC = sel.second;
-            cout << "Destino aleatório escolhido: (" << destL << ", " << destC << ")\n";
+            cout << "Destino aleatorio escolhido: (" << destL << ", " << destC << ")\n";
         } else {
             // parse
             std::istringstream iss(linha);
             if (!(iss >> destL >> destC)) {
-                cout << "Entrada inválida." << endl; continue;
+                cout << "Entrada invalida." << endl; continue;
+            }
+        }
+
+        bool vitoria = false;
+        // Verifica se o destino é a saída
+        if (mapa.mapaDesenho[destL][destC] == '@') {
+            int chaves_necessarias = 3; // Com base em "$$$@"
+            if (jogador.qtd_chaves >= chaves_necessarias) {
+                for (int i = 0; i < chaves_necessarias; ++i) {
+                    personagem_usar_chave(&jogador);
+                }
+                mapa.mapaDesenho[destL][destC] = ' ';
+                vitoria = true;
+            } else {
+                cout << "Voce precisa de " << chaves_necessarias << " chaves para abrir a saida." << endl;
+                continue;
             }
         }
 
@@ -143,7 +180,7 @@ int main() {
         vector<pair<int,int>> caminho;
         bool ok = personagem_navegar_para_jogo(mapa, &jogador, destL, destC, &caminho);
         if (!ok) {
-            cout << "Não foi possível encontrar caminho até (" << destL << ", " << destC << ")." << endl;
+            cout << "Nao foi possivel encontrar caminho ate (" << destL << ", " << destC << ")." << endl;
         } else {
             cout << "Caminho encontrado (" << caminho.size() << " passos):\n";
             for (auto &s : caminho) cout << "(" << s.first << "," << s.second << ") ";
@@ -152,6 +189,10 @@ int main() {
         }
         // Imprime inventário do personagem após a escolha
         imprimir_inventario(jogador);
+        if (vitoria) {
+            cout << "Voce venceu!" << endl;
+            break;
+        }
     }
 
     cout << "Saindo..." << endl;

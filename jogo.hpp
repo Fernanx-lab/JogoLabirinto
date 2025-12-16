@@ -108,16 +108,16 @@ static inline bool personagem_navegar_para_jogo(Mapa& mapa, Personagem* p, int g
             int escolha = rand() % 3;
             if (escolha == 0) {
                 personagem_adicionar_chave(p);
-                std::cout << "Baú aberto em (" << nl << "," << nc << "): chave obtida." << std::endl;
+                std::cout << "Bau aberto em (" << nl << "," << nc << "): chave obtida." << std::endl;
             } else if (escolha == 1) {
                 int cura = (rand() % 5) + 1;
                 personagem_adicionar_pocao(p, cura);
-                std::cout << "Baú aberto em (" << nl << "," << nc << "): poção (cura " << cura << ") obtida." << std::endl;
+                std::cout << "Bau aberto em (" << nl << "," << nc << "): pocao (cura " << cura << ") obtida." << std::endl;
             } else {
                 // Bomba explode na cara do jogador: dano aleatório 1..5
                 int dano = (rand() % 5) + 1;
                 personagem_receber_dano(p, dano);
-                std::cout << "Baú aberto em (" << nl << "," << nc << "): bomba explodiu! "
+                std::cout << "Bau aberto em (" << nl << "," << nc << "): bomba explodiu! "
                           << "Dano recebido: " << dano << "." << std::endl;
             }
             // Marca o baú como aberto
