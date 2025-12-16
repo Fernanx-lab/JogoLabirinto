@@ -25,6 +25,7 @@ typedef struct {
     int vida_atual;
 
     int qtd_chaves;
+    int qtd_bombas;
 
     Pocao pocoes[MAX_POCOES];
     int qtd_pocoes;
@@ -48,6 +49,7 @@ static inline void personagem_inicializar(Personagem *p, const char *nome, int l
     p->vida_atual = 10;
 
     p->qtd_chaves = 0;
+    p->qtd_bombas = 0;
     p->qtd_pocoes = 0;
 
     p->linha = linha_ini;
@@ -113,6 +115,18 @@ static inline bool personagem_usar_chave(Personagem *p) {
     }
 
     p->qtd_chaves--;
+    return true;
+}
+
+// Adiciona uma bomba
+static inline void personagem_adicionar_bomba(Personagem *p) {
+    p->qtd_bombas++;
+}
+
+// Usa uma bomba (consome uma bomba se houver)
+static inline bool personagem_usar_bomba(Personagem *p) {
+    if (p->qtd_bombas <= 0) return false;
+    p->qtd_bombas--;
     return true;
 }
 

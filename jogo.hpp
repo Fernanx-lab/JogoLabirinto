@@ -11,6 +11,7 @@
 #include <queue>
 #include <algorithm>
 #include <iostream>
+#include <cstdlib>
 
 static inline bool dentro_limites_jogo(int l, int c, int altura, int largura) {
     return l >= 0 && l < altura && c >= 0 && c < largura;
@@ -33,7 +34,8 @@ static inline std::vector<std::pair<int,int>> bfs_obter_caminho_jogo(const Mapa&
         return vazio;
     }
 
-    auto eh_parede = [&](int l, int c){ return mapa.mapaDesenho[l][c] == '#'; };
+    // Considera '*' como parede no formato dos mapas fornecidos; '#' é personagem.
+    auto eh_parede = [&](int l, int c){ return mapa.mapaDesenho[l][c] == '*'; };
 
     if (eh_parede(startLinha, startColuna) || eh_parede(goalLinha, goalColuna)) {
         return vazio;
@@ -99,7 +101,28 @@ static inline bool personagem_navegar_para_jogo(Mapa& mapa, Personagem* p, int g
         int nl = caminho[i].first;
         int nc = caminho[i].second;
         personagem_mover_para(p, nl, nc);
-        std::cout << "Movendo para: (" << nl << ", " << nc << ")\n";
+
+        // Processa interações na célula (ex.: baú 'B')
+        if (mapa.mapaDesenho[nl][nc] == 'B') {
+            // Abrir baú: 1/3 chave, 1/3 poção (cura 1..5), 1/3 bomba
+            int escolha = rand() % 3;
+            if (escolha == 0) {
+                personagem_adicionar_chave(p);
+                std::cout << "Baú aberto em (" << nl << "," << nc << "): chave obtida." << std::endl;
+            } else if (escolha == 1) {
+                int cura = (rand() % 5) + 1;
+                personagem_adicionar_pocao(p, cura);
+                std::cout << "Baú aberto em (" << nl << "," << nc << "): poção (cura " << cura << ") obtida." << std::endl;
+            } else {
+                // Bomba explode na cara do jogador: dano aleatório 1..5
+                int dano = (rand() % 5) + 1;
+                personagem_receber_dano(p, dano);
+                std::cout << "Baú aberto em (" << nl << "," << nc << "): bomba explodiu! "
+                          << "Dano recebido: " << dano << "." << std::endl;
+            }
+            // Marca o baú como aberto
+            mapa.mapaDesenho[nl][nc] = ' ';
+        }
     }
 
     return true;

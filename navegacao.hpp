@@ -100,7 +100,6 @@ static inline bool personagem_navegar_para(Mapa& mapa, Personagem* p, int goalLi
         int nl = caminho[i].first;
         int nc = caminho[i].second;
         personagem_mover_para(p, nl, nc);
-        std::cout << "Movendo para: (" << nl << ", " << nc << ")\n";
     }
 
     return true;

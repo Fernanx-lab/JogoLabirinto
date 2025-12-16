@@ -92,7 +92,6 @@ bool personagem_navegar_para(Mapa& mapa, Personagem* p, int goalLinha, int goalC
         personagem_mover_para(p, nl, nc);
         // Atualiza informação no mapa se necessário (não modifiquei o mapa aqui)
         // Em jogos reais, aqui poderiam ser tratadas colisões, itens, inimigos etc.
-        std::cout << "Movendo para: (" << nl << ", " << nc << ")\n";
     }
 
     return true;
