@@ -1,61 +1,76 @@
 README - JogoLabirinto
 
-Descrição
-- Este projeto é um protótipo de um jogo de labirinto em C++.
-- Foi adicionada navegação por BFS (busca em largura) para mover um personagem (`Personagem`) pelo mapa na menor distância (4-direções).
-- A navegação e utilitários foram consolidados em `jogo.hpp` como funções `static inline` para seguir o padrão do repositório.
+Resumo
+- Projeto: protótipo de jogo de labirinto em C++.
+- Objetivo desta atualização: implementar navegação automática por BFS, runner de teste interativo, inventário do personagem e interação com itens do mapa (baús, bombas, poções, chaves).
 
-Arquivos principais criados/alterados
-- jogo.hpp
-  - Contém a implementação inline do BFS (`bfs_obter_caminho_jogo`) e da função de navegação (`personagem_navegar_para_jogo`).
-  - Contém stubs para telas (tela inicial, recordes) para uso futuro.
-  - Removido o print de cada movimento para evitar saída excessiva durante a movimentação.
-  - Pressupostos: paredes são representadas por `#` (caractere não caminhável).
+Arquivos principais (estado atual)
+ - `jogo.hpp`:
+   - Implementação inline (`static inline`) de BFS (`bfs_obter_caminho_jogo`) e função de navegação `personagem_navegar_para_jogo`.
+   - Processamento de interações ao mover: ao entrar em uma célula com um baú (`'B'`) o baú é aberto e o jogador recebe um evento.
+   - Regras do baú (loot): 1/3 de chance de chave, 1/3 de chance de poção (cura de 1 a 5), 1/3 de chance de bomba.
+     - Quando sai bomba do baú, ela explode imediatamente no jogador causando dano aleatório entre 1 e 5 (não é adicionada ao inventário).
+   - Considera `'*'` como parede (não caminhável) e `'#'` como representação do personagem no mapa.
 
-- jogo.cpp
-  - Runner interativo para testar o jogo:
-    - Carrega um mapa usando `ObtemMapa()` (implementado em `mapa.hpp`).
-    - Inicializa o personagem (`Personagem`) na primeira célula livre encontrada.
-    - Exibe o mapa numerado (linhas e colunas) — o usuário pode escolher destino usando índices numéricos.
-    - Entrada do usuário:
-      - Digitar `linha coluna` para mover o personagem até o destino (se houver caminho).
-      - Digitar `r` para escolher um destino aleatório não-parede.
-      - Digitar `q` para sair.
-    - Ao encontrar um caminho, o personagem é movido até o destino (posição atual atualizada) e o caminho é exibido como sequência de pares `(linha,coluna)`.
+ - `jogo.cpp`:
+   - Runner interativo para testes.
+   - Carrega mapa com `ObtemMapa()` (de `mapa.hpp`).
+   - Localiza `'#'` no mapa como posição inicial do jogador; substitui `'#'` por espaço no `mapa.mapaDesenho` para tratar a célula como livre.
+   - Mostra mapa numerado com índices de linha no lado esquerdo e colunas no topo (algarismos empilhados: centenas/dezenas/unidades).
+   - Recebe entrada do usuário:
+     - `linha coluna` — move até destino (se houver caminho).
+     - `r` — escolhe destino aleatório não-parede.
+     - `q` — sai do programa.
+   - Após cada escolha, imprime o caminho encontrado (lista de coordenadas), posição final do personagem e inventário atual.
 
-- personagem.hpp (existente)
-  - Estrutura `Personagem` e utilitários (inicializar, mover, usar poções, chaves, etc.).
+ - `personagem.hpp` (modificado):
+   - Estrutura `Personagem` contém campos:
+     - `nome` (char[TAM_NOME])
+     - `vida_maxima`, `vida_atual`
+     - `qtd_chaves`
+     - `pocoes` (array) e `qtd_pocoes`
+     - `qtd_bombas` (campo presente; atualmente não preenchido por baús porque bombas explodem ao serem sorteadas)
+     - `linha`, `coluna`
+   - Funções utilitárias inline: inicializar, adicionar/usar poção, receber dano, adicionar/usar chave, mover para, adicionar/usar bomba (estas últimas existem para uso futuro).
 
-- mapa.hpp (existente)
-  - Estrutura `Mapa`, leitura do arquivo de mapas em `mapas/mapa X.txt` e geração de itens.
+ - `mapa.hpp` (existente):
+   - Lê mapas a partir de `mapas/mapa X.txt` e preenche `Mapa` com `mapaDesenho` (vector<string>) e contadores de itens.
 
-Alterações técnicas importantes
-- Todas as implementações de navegação estão em `jogo.hpp` como `static inline` para evitar problemas de múltipla definição ao incluir o header em múltiplos módulos.
-- A BFS explora 4 direções (N,E,S,O) e retorna o caminho mais curto reconstruído via matriz `pai`.
-- Removi `navegacao.hpp` e `navegacao.cpp` para evitar duplicação (código consolidado em `jogo.hpp`).
+Comportamento detalhado das interações
+ - Paredes: qualquer célula `'*'` é considerada parede e não é caminhável.
+ - Personagem inicial: localizado por `'#'` no arquivo do mapa. `jogo.cpp` remove esse caractere do desenho do mapa e inicializa `Personagem` nessa posição.
+ - Baús (`'B'`): ao o personagem entrar na célula do baú (durante o movimento automático via BFS), o baú é processado imediatamente:
+   - 1/3 de chance: chave — incrementa `p->qtd_chaves`.
+   - 1/3 de chance: poção — adiciona uma poção com cura aleatória de 1..5 (`personagem_adicionar_pocao`).
+   - 1/3 de chance: bomba — explode no jogador; chama `personagem_receber_dano(p, dano)` com dano aleatório 1..5. O baú é então removido (substituído por espaço).
 
-Como compilar e executar
-- No Windows (PowerShell), usando a task existente ou diretamente com o g++ do TDM-GCC (conforme o ambiente do workspace):
+Interface de terminal / exemplo de uso
+1. Compilar (Windows, PowerShell) — task já configurada no workspace; ou direto:
 
-  # Compilar
-  C:\TDM-GCC-64\bin\g++.exe -g jogo.cpp -o jogo.exe
+   C:\TDM-GCC-64\bin\g++.exe -g jogo.cpp -o jogo.exe
 
-  # Executar
-  .\jogo.exe
+2. Executar:
 
-- Ou use a task do VS Code já configurada (Menu Run/Tasks -> `C/C++: g++.exe build active file`).
+   .\jogo.exe
 
-Assunções e recomendações
-- Mapas devem ser retangulares (mesma largura em todas as linhas). Caso contrário, o renderer atual pode acessar posições inválidas.
-- Símbolo `#` é tratado como parede. Se usar outro símbolo, altere a checagem em `jogo.hpp` (lambda `eh_parede`).
-- Atualmente a movimentação não trata coleta de itens, inimigos ou portas. Para implementar isso, estenda o laço em `personagem_navegar_para_jogo` ou processe a célula após cada passo em `jogo.cpp`.
-- Para animação passo-a-passo, adicione delays entre movimentos (ex.: `std::this_thread::sleep_for`) e renderize o mapa a cada passo.
+3. Interagir:
+   - O mapa será exibido com índices de linha no lado esquerdo e colunas no topo (algarismos empilhados).
+   - Digite `linha coluna` (ex.: `5 10`) para mover até essa célula.
+   - Digite `r` para destino aleatório.
+   - Digite `q` para sair.
 
-Notas finais
-- Se desejar, posso:
-  - Adicionar lógica de interação com o mapa (baús, chaves, curas) durante a movimentação.
-  - Implementar uma UI textual mais rica (limpar tela, atualizar posição dinamicamente).
-  - Salvar/ler recordes (arquivo) e implementar a tela de recordes.
+Observações técnicas e decisões
+ - Implementação das funções de navegação em header (`jogo.hpp`) utiliza `static inline` para evitar múltiplas definições em tempo de link e facilitar inclusão direta no runner.
+ - A BFS retorna o caminho mais curto em termos de número de passos (4-direções) usando matriz `pai` para reconstrução.
+ - A renderização do cabeçalho de colunas usa três linhas (centenas, dezenas, unidades) alinhadas com espaçamento mínimo para manter legibilidade em terminais.
+ - Mensagens de abertura de baús e danos por bombas são impressas para feedback do jogador; a impressão de cada passo do movimento foi removida para reduzir ruído.
 
-Feito por: ferramenta de auxílio ao desenvolvimento (integração no repositório)
+Estado atual / possíveis melhorias
+ - A implementação funciona como protótipo de teste funcional. Melhorias sugeridas:
+   - Implementar efeitos de bomba (abrir paredes adjacentes) em vez de dano apenas.
+   - Animação passo-a-passo (desenhar mapa a cada passo com delay) para visualização do movimento.
+   - Persistência de recordes em arquivo e tela de recordes real.
+   - Reaproveitar `qtd_bombas` do `Personagem` (hoje o loot de bomba explode imediatamente; se quiser bombas no inventário, alterar comportamento dos baús).
+
 Data: 2025-12-16
+Atualizado por: integração de desenvolvimento no workspace
